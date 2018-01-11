@@ -1,6 +1,7 @@
-var mongoose = require('mongoose');
+var Mongoose = require('mongoose');
 
-mongoose.Promise = global.Promise;
-mongoose.connect('mongodb://localhost:27017/vaulto-backend');
+//tell mongoose we want to use built in promis library
+Mongoose.Promise = global.Promise;
+Mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/vaulto-backend');
 
-module.exports = {mongoose}
+module.exports = {Mongoose}
