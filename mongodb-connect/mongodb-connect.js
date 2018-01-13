@@ -13,7 +13,6 @@ MongoClient.connect('mongodb://localhost:27017/vaulto-backend', (err, db) => {
     }, (err) => {
         console.log('unable to fetch vaulto', err);
     })
-
     // db.close();
 });
 
