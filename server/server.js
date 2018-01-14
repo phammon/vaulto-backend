@@ -1,3 +1,4 @@
+require('./config/config');
 const express = require('express');
 const bodyParser = require('body-parser'); //takes Json and converts to object
 var {ObjectID} = require('mongodb');
@@ -9,7 +10,7 @@ var {authenticate} = require('./middleware/authenticate');
 
 var app = express();
 //port is set if running on heroku otherwise it will equal 3000 
-const port = process.env.PORT || 3000
+const port = process.env.PORT;
 
 app.use(bodyParser.json());
 //these are your routes fool! Post won't work unless you use username, password, and name!
