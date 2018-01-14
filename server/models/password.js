@@ -10,13 +10,13 @@ var Password = mongoose.model('password', {
     username: {
         type: String,
         required: true,
-        minlength: 1,
+        minlength: 4,
         trim: true
     },
     password: {
         type: String,
         required: true,
-        minlength: 1,
+        minlength: 4,
         trim: true
     },
     completed: {
@@ -26,6 +26,10 @@ var Password = mongoose.model('password', {
     completedAt: {
         type: Number,
         default: null
+    },
+    _creator: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true
     }
 });
 

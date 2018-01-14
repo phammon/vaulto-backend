@@ -32,6 +32,24 @@ var UserSchema = new mongoose.Schema({
         }
     }]
 });
+UserSchema.statics.findByCredentials = function (email, password) {
+    var User = this;
+    return User.findOne({email}).then((user) =>{
+        if(!user) {
+            return Promise.reject();
+        }
+        return new Promise((resolve, reject) => {
+            // user bcrypt.compare to compare password and user.password
+            bcrypt.compare(password, user.password, (err, res) => {
+                if(res) {
+                    resolve(user);
+                }else {
+                    reject();
+                }
+            });
+        });
+    });
+};
 UserSchema.statics.findByToken = function(token) {
     //this is a model method
     var User = this;
@@ -47,6 +65,16 @@ UserSchema.statics.findByToken = function(token) {
         '_id': decoded._id
     })
 }
+
+UserSchema.methods.removeToken = function (token) {
+    var user = this;
+    return user.update({
+    //pull lets you remove items from an array that match certain criteria
+        $pull: {
+            tokens: {token}
+        }
+    })    
+};
 //returns only ID and email.... don't wanna be returning passwords!
 UserSchema.methods.toJSON = function() {
     var user = this;

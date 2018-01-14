@@ -13,11 +13,12 @@ const port = process.env.PORT || 3000
 
 app.use(bodyParser.json());
 //these are your routes fool! Post won't work unless you use username, password, and name!
-app.post('/passwords', (req, res) => {
+app.post('/passwords', authenticate, (req, res) => {
     var password = new Password ({
         username: req.body.username,
         password: req.body.password,
         name: req.body.name,
+        _creator: req.user._id
     });
     password.save().then((doc) => { 
         res.send(doc);
@@ -43,14 +44,32 @@ app.get('/users/me', authenticate, (req, res) => {
     res.send(req.user);
     // console.log(req.user);
 });
-app.get('/passwords', (req, res) => {
-     Password.find().then((passwords) =>{
+app.post('/users/login', (req, res) => {
+    var body = _.pick(req.body, ['email', 'password']);
+    User.findByCredentials(body.email, body.password).then((user) => {
+        res.send(user);
+    }).catch((e) => {
+        res.status(400).send(); 
+    });
+});
+app.delete('/users/me/token', authenticate, (req, res) => {
+    req.user.removeToken(req.token).then(() => {
+        res.status(200).send();
+      }, () => {
+          res.status(400).send();
+    });
+});
+//all passwords for currently logged in user
+app.get('/passwords', authenticate, (req, res) => {
+     Password.find({
+         _creator: req.user._id
+     }).then((passwords) =>{
         res.send({ passwords });
      },(e) => {
         res.status(400).send(e);
      })
 });
-app.patch('/passwords/:id', (req, res) => {
+app.patch('/passwords/:id', authenticate, (req, res) => {
     var id = req.params.id;
     var body = _.pick(req.body, ['username', 'password', 'name', 'completed'])
     if(!ObjectID.isValid(id)) {
@@ -63,7 +82,7 @@ app.patch('/passwords/:id', (req, res) => {
         body.completed = false;
         body.completedAt = null;
     }
-     Password.findByIdAndUpdate(id, {$set: body}, {$new: true}).then((password) => {
+     Password.findOneAndUpdate({_id: id, _creator: req.user._id},{$set: body}, {$new: true}).then((password) => {
             //if the password doesn't exist
             if(!password) {
                 return res.status(404).send();
@@ -80,7 +99,10 @@ app.delete('/passwords/:id', (req, res) => {
     if(!ObjectID.isValid(id)) {
         return res.status(404).send();
     } 
-    Password.findOneAndRemove(id).then((password) => {
+    Password.findOneAndRemove({
+            _id: id,
+            _creator: req.user._id
+        }).then((password) => {
         if(!password) {
             return res.send.status(404).send();
         }
@@ -89,9 +111,12 @@ app.delete('/passwords/:id', (req, res) => {
         res.status(404).send(); 
     })
 });
-app.get('/passwords/:name', (req, res) => {
+app.get('/passwords/:name', authenticate, (req, res) => {
     var name = req.params;
-    Password.findOne(name).then((password) => {
+    Password.findOne({
+        name: name,
+        _creator: req.user._id
+    }).then((password) => {
         if(!password) {
             return res.send.status(404).send();
         }
@@ -106,6 +131,4 @@ app.listen(port, () => {
     console.log(`started listening on ${port}`);
 });
 
-module.exports = {
-    app
-};
+module.exports = {app};
