@@ -14,7 +14,7 @@ const port = process.env.PORT;
 
 app.use(function(req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, x-auth, Accept");
     next();
   });
 
@@ -54,7 +54,9 @@ app.get('/users/me', authenticate, (req, res) => {
 app.post('/users/login', (req, res) => {
     var body = _.pick(req.body, ['email', 'password']);
     User.findByCredentials(body.email, body.password).then((user) => {
-        res.send(user);
+        return user.generateAuthToken().then((token) => {
+            res.header('x-auth', token).send(user);
+        });
     }).catch((e) => {
         res.status(400).send(); 
     });
