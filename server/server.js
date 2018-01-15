@@ -12,6 +12,12 @@ var app = express();
 //port is set if running on heroku otherwise it will equal 3000 
 const port = process.env.PORT;
 
+aapp.use(function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    next();
+  });
+  
 app.use(bodyParser.json());
 //these are your routes fool! Post won't work unless you use username, password, and name!
 app.post('/passwords', authenticate, (req, res) => {
